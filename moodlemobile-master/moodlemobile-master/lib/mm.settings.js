@@ -60,76 +60,12 @@ MM.settings = {
         });
     },
 
-    _deleteSiteReferences: function(site) {
-        // Iterate all the collections, except the settings one.
-        var els, siteId;
-
-        siteId = site.get('id');
-
-        // Special cases, the site attribute doesn't exist there.
-        MM.db.remove("sites", siteId);
-        MM.db.remove("services", hex_md5(site.get('siteurl')));
-
-        for (var collection in MM.collections) {
-            if(MM.collections.hasOwnProperty(collection) && collection != "settings"){
-                els = MM.db.where(collection, {'site': siteId});
-                _.each(els, function(el) {
-                    MM.db.remove(collection, el.get("id"));
-                });
-            }
-        }
-    },
-
     deleteSite: function(siteId) {
         var site = MM.db.get('sites', siteId);
         MM.popConfirm(MM.lang.s('deletesite'), function() {
             var count = MM.db.length('sites');
-
-            // Delete device entry from the remote site.
-
-            var canRemove = true;
-            var wsFunction = "core_user_remove_user_device";
-            if (!MM.util.wsAvailable(wsFunction, site)) {
-                wsFunction = 'local_mobile_core_user_remove_user_device';
-                if (!MM.util.wsAvailable(wsFunction, site)) {
-                    canRemove = false;
-                }
-            }
-
-            if (typeof window.device == "undefined") {
-                canRemove = false;
-            }
-
-            if (canRemove) {
-
-                var data = {
-                    uuid:       window.device.uuid,
-                    appid:      MM.config.app_id
-                };
-
-                MM.moodleWSCall(
-                    wsFunction,
-                    data,
-                    function() {
-                        MM.log("Device removed from Moodle", "Notifications");
-                    },
-                    {
-                        wstoken: site.get("token"),
-                        siteurl: site.get("siteurl"),
-                        silently: true,
-                        getFromCache: false,
-                        saveToCache: false
-                    },
-                    function() {
-                        MM.log("Error removing device from Moodle", "Notifications");
-                    }
-                );
-            }
-
-            MM.settings._deleteSiteReferences(site);
-            MM.setConfig("current_site", null);
-
             if (count == 1) {
+                MM.db.remove('sites', siteId);
                 // Remove file directory.
                 MM.fs.removeDirectory(siteId,
                     function() {
@@ -138,6 +74,7 @@ MM.settings = {
                     function() {});
                 MM._displayAddSite();
             } else {
+                MM.db.remove('sites', siteId);
                 MM.fs.removeDirectory(siteId,
                     function() {
                         MM.settings._deleteSiteFilesReferences(siteId);
@@ -146,10 +83,6 @@ MM.settings = {
                 MM._renderManageAccounts();
                 MM._displayManageAccounts();
             }
-            MM.setConfig("current_token", null);
-            MM.config.current_site = null;
-            MM.config.current_token = null;
-            MM.site = null;
         });
     },
 
@@ -167,8 +100,7 @@ MM.settings = {
     showSync: function() {
         var settings = [
             {id: 'sync_ws_on', type: 'checkbox', label: MM.lang.s('enableautosyncws'), checked: true, handler: MM.settings.checkboxHandler},
-            {id: 'sync_css_on', type: 'checkbox', label: MM.lang.s('enableautosynclang'), checked: true, handler: MM.settings.checkboxHandler},
-            {id: 'sync_wifi_on', type: 'checkbox', label: MM.lang.s('enablesyncwifi'), checked: false, handler: MM.settings.checkboxHandler},
+            {id: 'sync_css_on', type: 'checkbox', label: MM.lang.s('enableautosynclang'), checked: true, handler: MM.settings.checkboxHandler}
         ];
 
         // Load default values
@@ -191,7 +123,7 @@ MM.settings = {
         });
 
         var tpl = '\
-            <h3 class="settings-section"><%= MM.lang.s("taskqueue") %></h3>\
+            <h2 class="settings-section"><%= MM.lang.s("taskqueue") %></h2>\
             <% if (tasks.length == 0) { %>\
             <p><%= MM.lang.s("notaskstobesynchronized") %></p>\
             <% } %>\
@@ -216,7 +148,7 @@ MM.settings = {
         tpl = '<div class="settings">' + syncSettings + tpl + '</div>';
         var html = MM.tpl.render(tpl, {tasks: syncTasks});
 
-        MM.panels.show('right', html, {title: MM.lang.s("synchronization")});
+        MM.panels.show('right', html, {title: MM.lang.s("settings") + " - " + MM.lang.s("synchronization")});
         // Once the html is rendered, we pretify the widgets.
         MM.widgets.enhance(settings);
         MM.widgets.addHandlers(settings);
@@ -285,7 +217,7 @@ MM.settings = {
 
         var tpl = '\
             <div class="settings">\
-            <h3 class="settings-section"><%= MM.lang.s("spaceusage") %></h3>\
+            <h2 class="settings-section"><%= MM.lang.s("spaceusage") %></h2>\
             <ul class="nav nav-v">\
             <% _.each(sites, function(site){ %>\
             <li class="nav-item">\
@@ -325,7 +257,7 @@ MM.settings = {
 
         var data = MM.tpl.render(tpl, {sites: sites});
 
-        MM.panels.show("right", data, {title: MM.lang.s("spaceusage")});
+        MM.panels.show("right", data, {title: MM.lang.s("settings") + " - " + MM.lang.s("spaceusage")});
 
         var sizeTotal = {};
         _.each(sites, function(site){
@@ -417,7 +349,7 @@ MM.settings = {
         html += MM.widgets.render(settingsB);
 
         html = '<div class="settings">' + html + '</div>';
-        MM.panels.show('right', html, {title: MM.lang.s("development")});
+        MM.panels.show('right', html, {title: MM.lang.s("settings") + " - " + MM.lang.s("development")});
 
         // Once the html is rendered, we prettify the widgets.
         MM.widgets.enhance(settingsC);
@@ -539,16 +471,6 @@ MM.settings = {
                 for (var el in window.plugins) {
                     info += "<p><b>Phonegap plugin loaded:</b> " + el + "</p>";
                 }
-                if (window.plugin) {
-                    for (var el in window.plugin) {
-                        info += "<p><b>Phonegap plugin loaded:</b> " + el + "</p>";
-                    }
-                }
-                if (cordova.plugins) {
-                    for (el in cordova.plugins) {
-                        info += "<p><b>Phonegap plugin loaded:</b> " + el + "</p>";
-                    }
-                }
             } else {
                 info += "<p style=\"color: red\"><b>No plugins available for Phonegap/Cordova</b></p>";
             }
@@ -602,9 +524,17 @@ MM.settings = {
 
         var info = MM.lang.s("reportbuginfo");
 
-        info += '<div class="centered"><p><a href="' + MM.lang.s("reportbugurl") + '" target="_blank"><button>' + MM.lang.s("reportabug") + '</button></a></p></div>';
+        // Some space for the user.
+        var mailInfo = MM.lang.s("writeherethebug") + "\n\n\n\n";
+        mailInfo += MM.settings.getDeviceInfo();
+        mailInfo += "==========================\n\n";
+        mailInfo += MM.getFormattedLog();
 
-        MM.panels.show("right", '<div class="settings"><p>' + info + '</p></div>', {title: MM.lang.s("reportabug")});
+        mailInfo = encodeURIComponent(mailInfo.replace(/<\/p>/ig,"\n").replace(/(<([^>]+)>)/ig,""))
+        info += '<div class="centered"><a href="mailto:' + MM.config.reportbugmail +'?subject=[[Mobile App Bug]]&body=' + mailInfo + '"><button>' + MM.lang.s("email") + '</button></a></div>';
+        info += "<br /><br /><br />";
+
+        MM.panels.show("right", '<div class="settings"><p>' + info + '</p></div>', {title: MM.lang.s("settings") + " - " + MM.lang.s("reportabug")});
     },
 
     showAbout: function() {
@@ -612,11 +542,11 @@ MM.settings = {
             data.version = MM.config.versionname;
             var info = "\
                 <div class='settings'>\
+                <header>\
+                    <h1><%= data.name %> <%= data.version %></h1>\
+                </header>\
+                \
                 <table class='about'>\
-                <thead>\
-                <tr><th><%= data.name %> <%= data.version %></th></tr>\
-                </thead>\
-                <tbody>\
                 <tr class='section-name'><th colspan='3'>License</th></tr>\
                 <tr><td colspan='3'><%= data.license.name %> <%= data.license.link %></td></tr>\
                 <tr class='section-name'><th colspan='3'>Credits</th></tr>\
@@ -627,11 +557,10 @@ MM.settings = {
                 <% _.each(data.thirdpartylibs, function(lib) { %>\
                     <tr><td><%= lib.name %></td><td> <%= lib.version %> </td><td> <%= lib.license %> license</td></tr>\
                 <% }); %>\
-                </tbody>\
-                </table>\
+                </table></p>\
                 </div>\
             ";
-            MM.panels.show("right", MM.tpl.render(info, {data: data}), {title: MM.lang.s("about")});
+            MM.panels.show("right", MM.tpl.render(info, {data: data}), {title: MM.lang.s("settings") + " - " + MM.lang.s("about")});
         });
     },
 
@@ -657,41 +586,14 @@ MM.settings = {
                 options: MM.config.languages,
                 selected: MM.lang.current,
                 handler: MM.settings.languageSelected
-            },
-            {
-                id: 'event_notif_on',
-                type: 'checkbox',
-                label: MM.lang.s('enableeventnotifications'),
-                checked: true,
-                handler: function(e, setting) {
-                    MM.settings.checkboxHandler(e, setting);
-                    setTimeout(function() {
-                        var enabled = $('#' + setting.id).is(':checked');
-
-                        if (!enabled) {
-                            if (window.plugin && window.plugin.notification && window.plugin.notification.local) {
-                                window.plugin.notification.local.cancelAll();
-                            }
-                        }
-                    }, 500);
-                }
-            },
-        ];
-
-        // Load default values
-        $.each(settings, function(index, setting) {
-            if (setting.type == 'checkbox') {
-                if (typeof(MM.getConfig(setting.id)) != 'undefined') {
-                    settings[index].checked = MM.getConfig(setting.id);
-                }
             }
-        });
+        ];
 
         // Render the settings as html.
         var html = MM.widgets.render(settings);
 
         html = '<div class="settings">' + html + '</div>';
-        MM.panels.show('right', html, {title: MM.lang.s("general")});
+        MM.panels.show('right', html, {title: MM.lang.s("settings") + " - " + MM.lang.s("general")});
 
         // Once the html is rendered, we prettify the widgets.
         MM.widgets.enhance(settings);

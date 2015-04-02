@@ -81,8 +81,7 @@ MM.fs = {
             var path = MM.fs.entryURL(MM.fs.fileSystemRoot);
             // Android 4.2 and onwards
             //path = path.replace("storage/emulated/0", "sdcard");
-            // Delete last / if present.
-            return path.replace(/\/$/, '');
+            return path;
         }
     },
 
@@ -103,7 +102,7 @@ MM.fs = {
                             var msg = 'Critical error accessing file system, directory ' + MM.fs.basePath + ' can\'t be created';
                             MM.log(msg, "FS");
                             if (err) {
-                                //console.log("Error dump", "FS");
+                                console.log("Error dump", "FS");
                             }
                             MM.popErrorMessage(msg);
                         }
@@ -190,32 +189,6 @@ MM.fs = {
             {create: false, exclusive: false},
             function(dirEntry) {
                 dirEntry.removeRecursively(successCallback, errorCallback);
-            },
-            errorCallback
-        );
-    },
-
-    /**
-     * Remove a file
-     * @param  {string} path            The relative path of the file
-     * @param  {object} successCallback Success callback function
-     * @param  {object} errorCallback   Error callback function
-     */
-    removeFile: function(path, successCallback, errorCallback) {
-        MM.log('FS: Removing file ' + path, 'FS');
-
-        var baseRoot = MM.fs.fileSystemRoot;
-        if (!baseRoot) {
-            if(errorCallback) {
-                errorCallback();
-            }
-            return;
-        }
-        baseRoot.getFile(
-            path,
-            {create: false, exclusive: false},
-            function(fileEntry) {
-                fileEntry.remove(successCallback, errorCallback);
             },
             errorCallback
         );
@@ -431,8 +404,7 @@ MM.fs = {
                     },
                     function() {
                         errorCallBack(2);
-                    },
-                    MM.inNodeWK
+                    }
                 );
             },
             function() {
@@ -542,48 +514,5 @@ MM.fs = {
         else{
             baseRoot.getFile(filename, {create: true}, successCallBack, errorCallBack);
         }
-    },
-
-    /**
-     * Gets a file that might be outside the app's folder.
-     *
-     * @param  {String} fileURI         Path to the file to get.
-     * @param  {object} successCallBack Function to be called when the file is retrieved.
-     * @param  {object} errorCallBack   Function to be called when an error occurs.
-     */
-    getExternalFile: function(fileURI, successCallBack, errorCallBack) {
-        window.resolveLocalFileSystemURL(fileURI, successCallBack, errorCallBack);
-    },
-
-    /**
-     * Remove a file that might be outside the app's folder.
-     * @param  {string} path            The absolute path of the file
-     * @param  {object} successCallback Success callback function
-     * @param  {object} errorCallback   Error callback function
-     */
-    removeExternalFile: function(path, successCallback, errorCallback) {
-        MM.log('FS: Removing file ' + path, 'FS');
-
-        MM.fs.getExternalFile(path, function(fileEntry){
-            fileEntry.remove(successCallback, errorCallback);
-        }, errorCallback);
-    },
-
-    /**
-     * Reads a file as an ArrayBuffer.
-     *
-     * @param  {String} file            File to read.
-     * @param  {object} successCallback Function to be called when the file is retrieved.
-     * @param  {object} errorCallback   Function to be called when an error occurs.
-     */
-    readFileAsArrayBuffer: function(file, successCallback, errorCallback) {
-        var reader = new FileReader();
-        reader.onloadend = function (evt) {
-            successCallback(evt.target.result);
-        };
-        reader.onerror = function() {
-            errorCallback();
-        };
-        reader.readAsArrayBuffer(file);
     }
 };

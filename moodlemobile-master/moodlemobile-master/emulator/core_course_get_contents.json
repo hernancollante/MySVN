@@ -23,7 +23,7 @@
         "id": 4,
         "name": "Have your Say",
         "visible": 1,
-        "summary": "<p>This is the second section description</p><p>Some information</p>",
+        "summary": "",
         "summaryformat": 1,
         "modules": [
             {

@@ -13,10 +13,6 @@ define(function () {
             ["contact/:courseId/:userId", "contact", "addContact"]
         ],
 
-        isPluginVisible: function() {
-            return false;
-        },
-
         addContact: function(courseId, userId) {
 
             MM.log("Adding a contact");

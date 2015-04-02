@@ -164,7 +164,7 @@ MM.lang = {
      * @param {string} id The unique id of the string to be translated.
      * @param {string} component Core for regular strings or pluginname for plugins.
      */
-    s: function(id, component, replace) {
+    s: function(id, component) {
 
         if (typeof(component) == 'undefined') {
             component = 'core';
@@ -172,7 +172,7 @@ MM.lang = {
 
         var translated = '';
         // First we check if we find the string in the current language.
-        if (MM.lang.current != '' && typeof(MM.lang.strings[MM.lang.current][component]) != 'undefined' &&
+        if (typeof(MM.lang.strings[MM.lang.current][component]) != 'undefined' &&
             typeof(MM.lang.strings[MM.lang.current][component][id]) !== 'undefined'
         ) {
             translated = MM.lang.strings[MM.lang.current][component][id];
@@ -201,11 +201,6 @@ MM.lang = {
         if (!translated) {
             translated = '[[' + id + ']]';
         }
-
-        if (typeof(replace) != 'undefined') {
-            translated = translated.replace("{$a}", replace);
-        }
-
         return translated;
     },
 };

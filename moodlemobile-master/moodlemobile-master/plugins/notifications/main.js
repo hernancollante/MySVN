@@ -580,11 +580,7 @@ define(requires, function (notifsTpl, notifTpl, notifsEnableTpl, notifAlert, not
                         }
 
                         var notifText = MM.tpl.render(MM.plugins.notifications.templates.notificationAlert.html, {"event": e.payload});
-
-                        // Do not display Push notificaitons/messages popUP in the conversation screen.
-                        if (location.href.indexOf("#messages/conversation") < 0) {
-                            MM.popMessage(notifText, {title: MM.lang.s("notifications"), autoclose: 5000, resizable: false});
-                        }
+                        MM.popMessage(notifText, {title: MM.lang.s("notifications"), autoclose: 5000, resizable: false});
                     }
 
                     var pushNotification = window.plugins.pushNotification;
@@ -686,12 +682,7 @@ define(requires, function (notifsTpl, notifTpl, notifsEnableTpl, notifAlert, not
                 }
 
                 var notifText = MM.tpl.render(MM.plugins.notifications.templates.notificationAlert.html, {"event": event});
-
-
-                // Do not display Push notificaitons/messages popUP in the conversation screen.
-                if (location.href.indexOf("#messages/conversation") < 0) {
-                    MM.popMessage(notifText, {title: MM.lang.s("notifications"), autoclose: 5000, resizable: false});
-                }
+                MM.popMessage(notifText, {title: MM.lang.s("notifications"), autoclose: 5000, resizable: false});
             }
 
             if (window.plugins) {
