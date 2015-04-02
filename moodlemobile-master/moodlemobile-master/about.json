@@ -1,14 +1,14 @@
 {
-"name": "CEMAD",
+"name": "mootes14",
 "license": {
     "name": "Apache 2.0",
     "link": "http://www.apache.org/licenses/LICENSE-2.0"
 },
 "credits": [
 {
-    "fullname": "Hernan Collante",
+    "fullname": "Juan Leyva",
     "contribution": "Main developer",
-    "company": "StudioWeb Digital"
+    "company": "CV&A Consulting"
 },
 {
     "fullname": "Josep Maria Gifreu",
