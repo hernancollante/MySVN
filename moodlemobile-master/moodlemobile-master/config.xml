@@ -5,13 +5,13 @@
         id        = "com.campuscemad.cemad"
         versionCode = "1"
         version   = "1.0">
-    <name>CampusCEMAD</name>
+    <name>CEMAD</name>
 
     <description>
         CEMAD official app
     </description>
 
-    <author href="http://moodle.com" email="juan@moodle.com">
+    <author href="http://moodle.com" email="admin@campuscemad.com.ar">
         Hernán Collante
     </author>
 
@@ -99,7 +99,7 @@
     <gap:plugin name="com.phonegap.plugins.pushplugin" />
     <gap:plugin name="net.tunts.webintent" />
     <gap:plugin name="nl.x-services.plugins.launchmyapp">
-        <param name="URL_SCHEME" value="CampusCEMAD" />
+        <param name="URL_SCHEME" value="CEMAD" />
     </gap:plugin>
     <gap:plugin name="com.ionic.keyboard" version="1.0.3" />
     
